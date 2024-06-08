@@ -1,0 +1,89 @@
+import os
+from datetime import datetime
+
+# File setup
+FILENAME = 'transactions.txt'
+
+def load_transactions():
+    transactions = []
+    if os.path.exists(FILENAME):
+        with open(FILENAME, 'r') as file:
+            for line in file:
+                date, type, category, amount = line.strip().split('|')
+                transactions.append({
+                    'date': date,
+                    'type': type,
+                    'category': category,
+                    'amount': float(amount)
+                })
+    return transactions
+
+def save_transactions(transactions):
+    with open(FILENAME, 'w') as file:
+        for transaction in transactions:
+            file.write(f"{transaction['date']}|{transaction['type']}|{transaction['category']}|{transaction['amount']}\n")
+
+def add_transaction(type, category, amount):
+    transactions = load_transactions()
+    date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    transactions.append({
+        'date': date,
+        'type': type,
+        'category': category,
+        'amount': amount
+    })
+    save_transactions(transactions)
+    print(f"{type.capitalize()} added successfully.")
+
+def calculate_budget():
+    transactions = load_transactions()
+    income = sum(t['amount'] for t in transactions if t['type'] == 'income')
+    expenses = sum(t['amount'] for t in transactions if t['type'] == 'expense')
+    remaining_budget = income - expenses
+    print(f"Total Income: ${income:.2f}")
+    print(f"Total Expenses: ${expenses:.2f}")
+    print(f"Remaining Budget: ${remaining_budget:.2f}")
+
+def analyze_expenses():
+    transactions = load_transactions()
+    categories = {}
+    for t in transactions:
+        if t['type'] == 'expense':
+            if t['category'] not in categories:
+                categories[t['category']] = 0
+            categories[t['category']] += t['amount']
+    
+    print("Expense Analysis by Category:")
+    for category, amount in categories.items():
+        print(f"Category: {category}, Total Spent: ${amount:.2f}")
+
+def main():
+    while True:
+        print("\nBudget Tracker")
+        print("1. Add Income")
+        print("2. Add Expense")
+        print("3. Calculate Budget")
+        print("4. Analyze Expenses")
+        print("5. Exit")
+        choice = input("Choose an option: ")
+
+        if choice == '1':
+            category = input("Enter the income category: ")
+            amount = float(input("Enter the income amount: "))
+            add_transaction('income', category, amount)
+        elif choice == '2':
+            category = input("Enter the expense category: ")
+            amount = float(input("Enter the expense amount: "))
+            add_transaction('expense', category, amount)
+        elif choice == '3':
+            calculate_budget()
+        elif choice == '4':
+            analyze_expenses()
+        elif choice == '5':
+            print("Exiting the application.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
